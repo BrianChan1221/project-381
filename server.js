@@ -1,17 +1,37 @@
 var express             = require('express'),
     app                 = express(),
+	passport			= require('passport'),
+	FacebookStrategy    = require('passport-facebook').Strategy,
 	{ MongoClient, ServerApiVersion } = require("mongodb"),	
 	formidable 			= require('express-formidable'),
+	session				= require('express-fomidable'),
 	fsPromises 			= require('fs').promises;
 
 
-
+app.set('view engine', 'ejs');
 app.use(formidable());
 
-/*MongoDB settings*/
+// FacebookAuth strategy
+const facebookAuth = {
+	'clientID'        : '', 
+	'clientSecret'    : '', 
+	'callbackURL'     : ''
+};
+
+/*login or logout*/
+
+
+/*end of login logout*/
+
+/*facebook strategy*/
+
+
+/*end of facebook strategy*/
+
+/*Below is MongoDB settings*/
 const mongourl = '';
-const dbName = 'Library_Dataset';
-const collectionName = "Book";
+const dbName = 'library_dataset';
+const collectionName = "bookshelf";
 const client = new MongoClient(mongourl, {
     serverApi: {
         version: ServerApiVersion.v1,
@@ -44,9 +64,26 @@ const deleteDocument = async (db, criteria) => {
 	console.log("delete one document:" + JSON.stringify(results));
     return results;
 }
+
+/*handle function*/
+
 /*End of MongoDB settings*/
 
-/* RESTful */
+/*Middleware*/
+
+
+
+
+
+
+
+
+
+
+
+/*End of Middleware*/
+
+/* RESTful(WRONG!!!) */
 app.post('/api/booking/:bookingid', async (req,res) => { 
 	if (req.params.bookingid) {
 	console.log(req.body)
