@@ -1,0 +1,19 @@
+{
+    "name": "Library-APP",
+    "description": "Library",
+    "author": "Brian Chan",
+    "version": "0.0.1",
+    "dependencies": {
+        "ejs": "*",
+        "mongodb": "6.9.0",
+        "fs": "*",
+        "express": "*",
+        "express-formidable":"*",
+        "nodemon": "3.0.1",
+		"body-parser": "*"
+    },
+    "engine": "node >= 0.10.0",
+    "scripts": {
+        "start": "nodemon server"
+    }
+}
