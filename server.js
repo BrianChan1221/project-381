@@ -47,8 +47,7 @@ const deleteDocument = async (db, criteria) => {
 /*End of MongoDB settings*/
 
 /* RESTful */
-// Task 3
-app.post('/api/booking/:bookingid', async (req,res) => { //async programming way
+app.post('/api/booking/:bookingid', async (req,res) => { 
 	if (req.params.bookingid) {
 	console.log(req.body)
 	await client.connect();
@@ -63,7 +62,7 @@ app.post('/api/booking/:bookingid', async (req,res) => { //async programming way
 	res.status(500).json({"error": "missing bookingid"});
 	}
 })
-app.get('/api/booking/:bookingid', async (req,res) => { //async programming way
+app.get('/api/booking/:bookingid', async (req,res) => { 
 	if (req.params.bookingid) {
 	console.log(req.body)
 	let criteria = {};
@@ -81,10 +80,10 @@ app.get('/api/booking/:bookingid', async (req,res) => { //async programming way
 app.put('/api/booking/:bookingid', async (req,res) => {
 	if (req.params.bookingid) {
 	console.log(req.body)
-	/*missing codes here*/
-	let criteria = { bookingid: req.params.bookingid }; // Find the document by bookingid
+
+	let criteria = { bookingid: req.params.bookingid }; 
         let updateData = {
-            mobile: req.fields.mobile // Update the mobile field (or any other fields you want to update)
+            mobile: req.fields.mobile 
         };
 
         await client.connect();
@@ -101,8 +100,8 @@ app.put('/api/booking/:bookingid', async (req,res) => {
 app.delete('/api/booking/:bookingid', async (req,res) => {
 	if (req.params.bookingid) {
 	console.log(req.body)
-	/*missing codes here*/
-	let criteria = { bookingid: req.params.bookingid }; // Find the document by bookingid
+
+	let criteria = { bookingid: req.params.bookingid }; 
 
         await client.connect();
         console.log("Connected successfully to server");
@@ -115,8 +114,8 @@ app.delete('/api/booking/:bookingid', async (req,res) => {
 	res.status(500).json({"error": "missing bookingid"});
 	}
 })
-
 /* End of Restful */
+
 app.get('/api/booking/:bookingid', async (req,res) => {
 	res.status(200).type('json').json(users).end();
 });
