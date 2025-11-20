@@ -1,7 +1,7 @@
 var express             = require('express'),
     app                 = express(),
 	{ MongoClient, ServerApiVersion } = require("mongodb"),	
-	formidable 			= require('express-formidable'),//formidable can handle the file in the request data, it is an advanced version of body-parser
+	formidable 			= require('express-formidable'),
 	fsPromises 			= require('fs').promises;
 
 
