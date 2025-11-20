@@ -9,7 +9,7 @@ var express             = require('express'),
 app.use(formidable());
 
 /*MongoDB settings*/
-const mongourl = 'mongodb+srv://brian:Brian1221@cluster0.mq6o1ri.mongodb.net/?appName=Cluster0';
+const mongourl = 'mongodb+srv://brian:xxxxx@cluster0.mq6o1ri.mongodb.net/?appName=Cluster0';
 const dbName = 'test';
 const collectionName = "bookings";
 const client = new MongoClient(mongourl, {
