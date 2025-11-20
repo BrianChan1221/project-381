@@ -9,9 +9,9 @@ var express             = require('express'),
 app.use(formidable());
 
 /*MongoDB settings*/
-const mongourl = 'mongodb+srv://brian:xxxxx@cluster0.mq6o1ri.mongodb.net/?appName=Cluster0';
-const dbName = 'test';
-const collectionName = "bookings";
+const mongourl = '';
+const dbName = 'Library_Dataset';
+const collectionName = "Book";
 const client = new MongoClient(mongourl, {
     serverApi: {
         version: ServerApiVersion.v1,
