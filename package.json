@@ -1,18 +1,19 @@
 {
     "name": "Library-APP",
-    "description": "Library",
-    "author": "Brian Chan",
+    "description": "Library Bookshelf",
+    "author": "Group 11",
     "version": "0.0.1",
     "dependencies": {
         "ejs": "*",
         "mongodb": "6.9.0",
         "fs": "*",
         "express": "*",
+        "express-session": "*",
         "express-formidable":"*",
-        "nodemon": "3.0.1",
+        "nodemon": "*",
 		"body-parser": "*"
     },
-    "engine": "node >= 0.10.0",
+    "engine": "node >= 16.0.0",
     "scripts": {
         "start": "nodemon server"
     }
