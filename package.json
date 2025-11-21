@@ -1,7 +1,7 @@
 {
     "name": "Library-APP",
     "description": "Library Bookshelf",
-    "author": "Group 11",
+    "author": "Group 17",
     "version": "0.0.1",
     "dependencies": {
         "ejs": "*",
