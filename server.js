@@ -4,7 +4,7 @@ var express             = require('express'),
 	FacebookStrategy    = require('passport-facebook').Strategy,
 	{ MongoClient, ServerApiVersion } = require("mongodb"),	
 	formidable 			= require('express-formidable'),
-	session				= require('express-fomidable'),
+	session				= require('express-session'),
 	fsPromises 			= require('fs').promises;
 
 
