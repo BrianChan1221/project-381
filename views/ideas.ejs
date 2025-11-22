@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Ideas | Library Ideas</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>💡 Library Ideas Dashboard</h1>
+    <p>Welcome, <%= user %>! | <a href="/logout" class="logout">Logout</a></p>
+
+    <h3>Add a New Book Idea</h3>
+    <form action="/ideas" method="post" class="idea-form">
+      <input type="text" name="bookName" placeholder="Book Name" required />
+      <textarea name="idea" placeholder="Share your thoughts..." required></textarea>
+      <button type="submit">Add Idea</button>
+    </form>
+
+    <h3>Search Ideas</h3>
+    <form method="get" action="/ideas">
+      <input type="text" name="q" placeholder="Search by book title"
+             value="<%= search ? search : '' %>" />
+      <button type="submit">Search</button>
+    </form>
+
+    <hr />
+
+    <h3>Ideas List</h3>
+    <% if (ideas.length === 0) { %>
+      <p>No ideas found.</p>
+    <% } else { %>
+      <ul class="ideas-list">
+        <% ideas.forEach(idea => { %>
+          <li>
+            <b><%= idea.bookName %></b> — <%= idea.idea %>
+            <small>(by <%= idea.user %>)</small>
+            <% if (idea.user === user) { %>
+              <a href="/ideas/<%= idea._id %>/edit" class="btn-small">Edit</a>
+              <a href="/ideas/<%= idea._id %>/delete" class="btn-delete"
+                 onclick="return confirm('Delete this idea?')">Delete</a>
+            <% } %>
+          </li>
+        <% }) %>
+      </ul>
+    <% } %>
+
+    <p><a href="/">← Back to Home</a></p>
+  </div>
+</body>
+</html>

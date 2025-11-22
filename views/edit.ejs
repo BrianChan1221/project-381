@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Edit Idea | Library Ideas</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>✏️ Edit Book Idea</h1>
+    <form method="post" action="/ideas/<%= idea._id %>/edit">
+      <input type="text" name="bookName" value="<%= idea.bookName %>" required />
+      <textarea name="idea" required><%= idea.idea %></textarea>
+      <button type="submit">Save Changes</button>
+    </form>
+    <p><a href="/ideas">← Back to Ideas</a></p>
+  </div>
+</body>
+</html>
