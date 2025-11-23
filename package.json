@@ -1,24 +1,23 @@
 {
-  "name": "library-ideas-app",
-  "version": "1.0.0",
-  "description": "Library Ideas Sharing Web App",
-  "main": "server.js",
-  "author": "Group 17",
-  "scripts": {
-    "start": "nodemon server.js"
-  },
-  "dependencies": {
-    "bcrypt": "^5.1.1",
-    "body-parser": "^1.20.3",
-    "ejs": "^3.1.10",
-    "express": "^4.21.1",
-    "express-session": "^1.17.3",
-    "mongoose": "^8.8.0"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.11"
-  }
+    "name": "Library-APP",
+    "description": "Library Bookshelf",
+    "author": "Group 17",
+    "version": "0.0.1",
+    "dependencies": {
+        "ejs": "*",
+        "mongodb": "6.9.0",
+        "fs": "*",
+        "path": "*",
+        "passport": "*",
+        "passport-facebook": "*",
+        "express": "*",
+        "express-session": "*",
+        "express-formidable":"*",
+        "nodemon": "*",
+		"body-parser": "*"
+    },
+    "engine": "node >= 16.0.0",
+    "scripts": {
+        "start": "nodemon server"
+    }
 }

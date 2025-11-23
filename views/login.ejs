@@ -1,24 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Login | Library Ideas</title>
-  <link rel="stylesheet" href="/css/style.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>📚 Library Ideas</h1>
-    <h2>Login</h2>
-    <% if (error) { %>
-      <p class="error"><%= error %></p>
-    <% } %>
-    <form method="post" action="/login">
-      <input type="text" name="username" placeholder="Username" required />
-      <input type="password" name="password" placeholder="Password" required />
-      <button type="submit">Login</button>
-    </form>
-    <p><a href="/register">Don't have an account? Register here</a></p>
-    <p><a href="/">← Back to Home</a></p>
-  </div>
-</body>
+<html>
+    <body>
+        <head>
+    	<meta charset="UTF-8"/>
+    	<link rel="stylesheet" href="/css/style.css" />
+    </head>
+    
+	<div class="container">
+		<H1>Hello, welcome to &#128218;Bookcase&#128218;. </H1>
+		<a href='/auth/facebook'>Login through facebook</a>
+		</div>
+    </body>
 </html>

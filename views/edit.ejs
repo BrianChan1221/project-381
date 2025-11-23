@@ -1,19 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Edit Idea | Library Ideas</title>
-  <link rel="stylesheet" href="/css/style.css" />
-</head>
-<body>
-  <div class="container">
-    <h1>✏️ Edit Book Idea</h1>
-    <form method="post" action="/ideas/<%= idea._id %>/edit">
-      <input type="text" name="bookName" value="<%= idea.bookName %>" required />
-      <textarea name="idea" required><%= idea.idea %></textarea>
-      <button type="submit">Save Changes</button>
-    </form>
-    <p><a href="/ideas">← Back to Ideas</a></p>
-  </div>
-</body>
+<html>
+    <head>
+    	<meta charset="UTF-8"/>
+    	<link rel="stylesheet" href="/css/style.css" />
+    </head>
+    <body>
+	<div class="container">
+    
+		<H1>&#128218;Bookcase&#128218;</H1>
+		<hr/>
+	<p><span style="font-size:64px;">&#x1F4DD;</span></p>
+        <form action="/update" method="POST" enctype="multipart/form-data">
+            Book Name: <input name="bookname" value=<%= bookshelfs.bookname %>><br>
+            Author: <input name="author" value=<%= bookshelfs.author %> /><br>
+            <input type="file" name="filetoupload"><br>
+            <input type="hidden" name="_id" value=<%= bookshelfs._id %>>
+            <input type="submit" value="update">  
+        </form>
+        </div>
+    </body>
 </html>
