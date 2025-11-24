@@ -1,10 +1,11 @@
 # Library Ideas Web App
 
 ## Group Info
-- **Course Code**: COMP3810SEF
+- **Course Code**: COMP3810SEF/COMP381F
 - **Group No**: 17
-- **Members**: [List student names + SID]
-
+- **Members**: Chan Hoi Lun 12960272
+               Chan Man Tik 13138272
+               Chan King Yin 13130121
 ---
 
 ## Project File Introduction
@@ -13,15 +14,14 @@
 |--------------|-------------|
 | `server.js` | Implements Express server, login/logout, MongoDB CRUD logic, and RESTful API endpoints |
 | `package.json` | Lists project dependencies and start script |
-| `views/` | Contains EJS files for Login, Ideas list, Edit, etc. |
-| `models/idea.js` | Mongoose schema for storing book ideas |
+| `views/` | Contains EJS files for login, main, info, edit, etc. |
 | `public/` | Static CSS/assets folder |
-| `README.md` | Project information, usage guide, and deployment link |
+| `README.md` | Project information, usage guide and deployment link |
 
 ---
 
 ## Cloud Deployment URL
-https://comp3810sef-group17.onrender.com/
+https://project-381-9h99.onrender.com
 
 ---
 
@@ -29,10 +29,10 @@ https://comp3810sef-group17.onrender.com/
 
 
 1. **Login/Logout/Registration**
-   - Go to `/login` for login and `/register` for registration.
+   - Go to '/login' for login and `/register` for registration.
    - Use the following credentials to log in:
      - `student1 / password1`
-     - `student2 / 123456`
+     - 'student2 / 123456'
    - Register a new account through the registration page.
    - Logout by clicking “Logout”.
 
@@ -42,14 +42,13 @@ https://comp3810sef-group17.onrender.com/
    - Update: Click “Edit” to modify your own idea
    - Delete: Click “Delete” to remove your own idea
 
-3. **RESTful API Endpoints (No Authentication)**
+3. **RESTful API**
    | Method | Endpoint | Description |
    |---------|-----------|-------------|
-   | GET | `/api/ideas` | Get all ideas |
-   | POST | `/api/ideas` | Create new idea |
-   | PUT | `/api/ideas/:id` | Update idea by ID |
-   | DELETE | `/api/ideas/:id` | Delete idea by ID |
+   | GET | `/api/library/:bookname` | Get all ideas |
+   | POST | `/api/library/:bookname` | Create new idea |
+   | PUT | `/api/library/:bookname` | Update idea by ID |
+   | DELETE | `/api/library/:bookname` | Delete idea by ID |
 
    **Example test with CURL:**
-   ```bash
-   curl -X POST -H "Content-Type: application/json" -d '{"bookName":"1984","idea":"Great dystopian novel"}' https://comp3810sef-group17.onrender.com/api/ideas
+   \\curl -X POST -H "Content-Type: application/json" -d '{"bookName":"1984","idea":"Great dystopian novel"}' https://comp3810sef-group17.onrender.com/api/ideas
