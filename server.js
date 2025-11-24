@@ -13,8 +13,8 @@ app.use(formidable());
 
 // Facebook Auth Strategy
 const facebookAuth = {
-    'clientID': '1348713563408776',
-    'clientSecret': '2fca2b3a887a1b54e4f2dbb12425736b',
+    'clientID': '1174030840897887',
+    'clientSecret': 'f5aebdd7a0d67c3516a1a04d0d8cfeb9',
     'callbackURL': 'https://project-381-9h99.onrender.com/auth/facebook/callback'
 };
 
@@ -311,5 +311,6 @@ app.delete('/api/library/:bookname', async (req, res) => {
     } else res.status(500).json({ "error": "missing bookname" });
 });
 
-const port = process.env.PORT || 8099;
-app.listen(port, () => console.log(`Listening at http://localhost:${port}`));
+const port = process.env.PORT || 3000;
+const host = '0.0.0.0';
+app.listen(port, () => console.log(`Listening at http://${host}:${port}`));
