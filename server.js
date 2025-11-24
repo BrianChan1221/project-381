@@ -232,39 +232,6 @@ client.connect().then(() => {
 
 /* RESTful */
 
-/*  CREATE
-curl -X POST -H "Content-Type: application/json" --data '{"bookname":"jojojo","author":"sss"}' project-381-9h99.onrender.com/api/library/jojojo
-
-curl -X POST -F 'bookname=jojojo' -F "filetoupload=@image.png" project-381-9h99.onrender.com/api/library/jojojo
-
-*/
-app.post('/api/library/:bookname', async (req,res) => { 
-    if (req.params.bookname) {
-        console.log(req.body)
-		try {
-			await client.connect();
-			console.log("Connected successfully to server");
-		    const db = client.db(dbName);
-		    let newDoc = {
-		        
-		        bookname: req.fields.bookname,
-		        author: req.fields.author};
-		    if (req.files.filetoupload && req.files.filetoupload.size > 0) {
-		        const data = await fsPromises.readFile(req.files.filetoupload.path);
-		        newDoc.photo = Buffer.from(data).toString('base64');}
-			await insertDocument(db, newDoc);
-		    res.status(200).json({"Successfully inserted":newDoc}).end();
-		} catch(err) {
-			console.error(err);
-		} finally {
-			await client.close();
-		    console.log("Closed DB connection");
-		}
-    } else {
-        res.status(500).json({"error": "missing bookname"});
-    }
-})
-
 /* READ
 curl -X GET project-381-9h99.onrender.com/api/library/jojojo
 */
