@@ -11,24 +11,27 @@ const path = require('path');
 const fsPromises = require('fs').promises;
 
 app.set('view engine', 'ejs');
-
+app.use(express.urlencoded({ extended: true }));
 app.use(formidable());
 app.use((req,res,next) => {
     let d = new Date();
     console.log(`TRACE: ${req.path} was requested at ${d.toLocaleDateString()}`);  
     next();
 });
+
 const isLoggedIn = (req,res,next) => {
     if (req.isAuthenticated())
         return next();
     res.redirect('/login');
 }
+app.use(express.json());
 app.use(session({
   secret: 'tHiSiSasEcRetStr',  // Replace with your session secret
   resave: true,
   saveUninitialized: true
 }));
-
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(fileUpload()); // Middleware for handling file uploads
 app.use(express.static(path.join(__dirname, 'public')));
 
