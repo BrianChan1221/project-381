@@ -8,6 +8,7 @@
     "cookie-session": "2.1.1",
     "ejs": "*",
     "express": "*",
+    "express-formidable": "*",
     "express-fileupload": "*",  
     "express-session": "*",
     "mongodb": "6.9.0",
