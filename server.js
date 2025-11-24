@@ -32,7 +32,7 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(fileUpload()); // Middleware for handling file uploads
+ // Middleware for handling file uploads
 app.use(express.static(path.join(__dirname, 'public')));
 
 
