@@ -1,47 +1,23 @@
 var express = require('express'),
     app = express(),
     passport = require('passport'),
-    FacebookStrategy = require('passport-facebook').Strategy,
+    LocalStrategy = require('passport-local').Strategy,
     { MongoClient, ServerApiVersion, ObjectId } = require("mongodb"),
     formidable = require('express-formidable'),
     session = require('express-session'),
-    fsPromises = require('fs').promises;
+    bcrypt = require('bcrypt'),
+    fsPromises = require('fs').promises,
     path = require('path');
 
 app.set('view engine', 'ejs');
 app.use(formidable());
+app.use(express.urlencoded({ extended: true }));
 
-// Facebook Auth Strategy
-const facebookAuth = {
-    'clientID': '',
-    'clientSecret': '',
-    'callbackURL': 'https://project-381-9h99.onrender.com/auth/facebook/callback'
-};
-
-var user = {};
-passport.serializeUser(function (user, done) { done(null, user); });
-passport.deserializeUser(function (id, done) { done(null, user); });
-
-passport.use(new FacebookStrategy({
-    "clientID": facebookAuth.clientID,
-    "clientSecret": facebookAuth.clientSecret,
-    "callbackURL": facebookAuth.callbackURL
-},
-    function (token, refreshToken, profile, done) {
-        console.log("Facebook Profile: " + JSON.stringify(profile));
-        user = {
-            id: profile.id,
-            name: profile.displayName,
-            type: profile.provider
-        };
-        return done(null, user);
-    })
-);
-
-// MongoDB Configuration
+// MongoDB Config
 const mongourl = 'mongodb+srv://brian:Brian1221@cluster0.mq6o1ri.mongodb.net/?appName=Cluster0';
 const dbName = 'library_dataset';
 const collectionName = "bookshelfs";
+const userCollection = "users";
 const client = new MongoClient(mongourl, {
     serverApi: {
         version: ServerApiVersion.v1,
@@ -50,7 +26,51 @@ const client = new MongoClient(mongourl, {
     }
 });
 
-// Database Helper Functions
+// Passport setup for local strategy
+passport.use(new LocalStrategy(async (username, password, done) => {
+    try {
+        await client.connect();
+        const db = client.db(dbName);
+        const user = await db.collection(userCollection).findOne({ username: username });
+        if (!user) return done(null, false, { message: 'Incorrect username.' });
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return done(null, false, { message: 'Incorrect password.' });
+        return done(null, user);
+    } catch (err) {
+        return done(err);
+    } finally {
+        await client.close();
+    }
+}));
+
+passport.serializeUser((user, done) => {
+    done(null, user._id.toString());
+});
+
+passport.deserializeUser(async (id, done) => {
+    try {
+        await client.connect();
+        const db = client.db(dbName);
+        const user = await db.collection(userCollection).findOne({ _id: new ObjectId(id) });
+        done(null, user);
+    } catch (err) {
+        done(err);
+    } finally {
+        await client.close();
+    }
+});
+
+// Middleware & Sessions
+app.use(session({
+    secret: "tHiSiSasEcRetStr",
+    resave: false,
+    saveUninitialized: true
+}));
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Utility DB Functions (reuse from your code)
 const insertDocument = async (db, doc) => {
     var collection = db.collection(collectionName);
     let results = await collection.insertOne(doc);
@@ -89,79 +109,101 @@ const deleteDocument = async (db, criteria) => {
     return results;
 };
 
-// Handlers
-const handle_Create = async (req, res) => {
+// Middleware for protecting routes
+const isLoggedIn = (req, res, next) => {
+    if (req.isAuthenticated()) return next();
+    res.redirect('/login');
+};
+
+// Routes
+
+// Render login page
+app.get('/login', (req, res) => {
+    res.status(200).render('login', { message: req.query.message || "" });
+});
+
+// Handle login POST using passport local
+app.post('/login', passport.authenticate('local', {
+    successRedirect: '/main',
+    failureRedirect: '/login?message=Invalid username or password'
+}));
+
+// Render registration page
+app.get('/register', (req, res) => {
+    res.status(200).render('register', { message: "" });
+});
+
+// Handle registration POST
+app.post('/register', async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
-        let newDoc = {
-            userid: req.user.id,
-            bookname: req.fields.bookname,
-            author: req.fields.author,
-            reviews: [] // Added field
-        };
-
-        if (req.files.filetoupload && req.files.filetoupload.size > 0) {
-            const data = await fsPromises.readFile(req.files.filetoupload.path);
-            newDoc.photo = Buffer.from(data).toString('base64');
+        const existingUser = await db.collection(userCollection).findOne({ username: req.fields.username });
+        if (existingUser) {
+            return res.status(400).render('register', { message: 'Username already exists' });
         }
-
-        await insertDocument(db, newDoc);
-        res.redirect('/');
-    } catch (err) { console.error(err); }
-    finally {
+        const hashedPassword = await bcrypt.hash(req.fields.password, 10);
+        const newUser = { username: req.fields.username, password: hashedPassword, name: req.fields.username };
+        await db.collection(userCollection).insertOne(newUser);
+        res.redirect('/login?message=Registration successful, please log in.');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    } finally {
         await client.close();
     }
-};
+});
 
-const handle_Find = async (req, res) => {
+// Logout route
+app.get('/logout', (req, res, next) => {
+    req.logout(function (err) {
+        if (err) return next(err);
+        res.redirect('/login');
+    });
+});
+
+// Book-related routes must be protected with isLoggedIn
+app.get('/', isLoggedIn, (req, res) => res.redirect('/main'));
+app.get('/main', isLoggedIn, async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
         const docs = await findDocument(db);
         res.status(200).render('main', { nBookshelfs: docs.length, bookshelfs: docs, user: req.user });
     } catch (err) { console.error(err); }
-    finally {
-        await client.close();
-    }
-};
+    finally { await client.close(); }
+});
 
-const handle_Details = async (req, res, criteria) => {
+app.get('/details', isLoggedIn, async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
-        let DOCID = { _id: ObjectId.createFromHexString(criteria._id) };
+        let DOCID = { _id: ObjectId.createFromHexString(req.query._id) };
         const docs = await findDocument(db, DOCID);
         res.status(200).render('details', { bookshelfs: docs[0], user: req.user });
     } catch (err) { console.error(err); }
-    finally {
-        await client.close();
-    }
-};
+    finally { await client.close(); }
+});
 
-const handle_Edit = async (req, res, criteria) => {
+app.get('/edit', isLoggedIn, async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
-        let DOCID = { '_id': ObjectId.createFromHexString(criteria._id) };
+        let DOCID = { '_id': ObjectId.createFromHexString(req.query._id) };
         let docs = await findDocument(db, DOCID);
-
-        if (docs.length > 0 && docs[0].userid == req.user.id) {
+        if (docs.length > 0 && docs[0].userid == req.user._id.toString()) {
             res.status(200).render('edit', { bookshelfs: docs[0], user: req.user });
         } else {
             res.status(500).render('info', { message: 'Unable to edit - you are not bookshelf owner!', user: req.user });
         }
     } catch (err) { console.error(err); }
-    finally {
-        await client.close();
-    }
-};
+    finally { await client.close(); }
+});
 
-const handle_Update = async (req, res, criteria) => {
+app.post('/update', isLoggedIn, async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
-
         const DOCID = {
             _id: ObjectId.createFromHexString(req.fields._id)
         };
@@ -169,27 +211,23 @@ const handle_Update = async (req, res, criteria) => {
             bookname: req.fields.bookname,
             author: req.fields.author,
         };
-
         if (req.files.filetoupload && req.files.filetoupload.size > 0) {
             const data = await fsPromises.readFile(req.files.filetoupload.path);
             updateData.photo = Buffer.from(data).toString('base64');
         }
-
         const results = await updateDocument(db, DOCID, updateData);
-        res.status(200).render('info', { message: 'Update sucessfully.', user: req.user });
+        res.status(200).render('info', { message: 'Update successfully.', user: req.user });
     } catch (err) { console.error(err); }
-    finally {
-        await client.close();
-    }
-};
+    finally { await client.close(); }
+});
 
-const handle_Delete = async (req, res) => {
+app.get('/delete', isLoggedIn, async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
         let DOCID = { '_id': ObjectId.createFromHexString(req.query._id) };
         let docs = await findDocument(db, DOCID);
-        if (docs.length > 0 && docs[0].userid == req.user.id) {
+        if (docs.length > 0 && docs[0].userid == req.user._id.toString()) {
             await deleteDocument(db, DOCID);
             res.status(200).render('info', { message: `Book name ${docs[0].bookname} removed.`, user: req.user });
         } else {
@@ -197,17 +235,16 @@ const handle_Delete = async (req, res) => {
         }
     } catch (err) { console.error(err); }
     finally { await client.close(); }
-};
+});
 
-// New Handler: Add Review
-const handle_AddReview = async (req, res) => {
+app.post('/addreview', isLoggedIn, async (req, res) => {
     try {
         await client.connect();
         const db = client.db(dbName);
         const bookId = ObjectId.createFromHexString(req.fields._id);
         const reviewText = req.fields.review;
         const review = {
-            userid: req.user.id,
+            userid: req.user._id.toString(),
             username: req.user.name,
             text: reviewText,
             date: new Date().toISOString()
@@ -216,101 +253,8 @@ const handle_AddReview = async (req, res) => {
         res.redirect(`/details?_id=${req.fields._id}`);
     } catch (err) { console.error(err); }
     finally { await client.close(); }
-};
-
-// Middleware
-app.use((req, res, next) => {
-    console.log(`TRACE: ${req.path} was requested at ${new Date().toLocaleString()}`);
-    next();
 });
 
-const isLoggedIn = (req, res, next) => {
-    if (req.isAuthenticated()) return next();
-    res.redirect('/login');
-};
+const port = process.env.PORT || 8099;
+app.listen(port, () => console.log(`Listening at http://localhost:${port}`));
 
-app.use(session({
-    secret: "tHiSiSasEcRetStr",
-    resave: true,
-    saveUninitialized: true
-}));
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Routes
-app.get("/login", (req, res) => res.status(200).render('login', { user: req.user }));
-app.get("/auth/facebook", passport.authenticate("facebook", { scope: "email" }));
-app.get("/auth/facebook/callback",
-    passport.authenticate("facebook", {
-        successRedirect: "/main",
-        failureRedirect: "/"
-    })
-);
-
-app.get('/', isLoggedIn, (req, res) => res.redirect('/main'));
-app.get('/main', isLoggedIn, handle_Find);
-app.get('/details', isLoggedIn, (req, res) => handle_Details(req, res, req.query));
-app.get('/edit', isLoggedIn, (req, res) => handle_Edit(req, res, req.query));
-app.post('/update', isLoggedIn, (req, res) => handle_Update(req, res, req.query));
-app.get('/create', isLoggedIn, (req, res) => res.status(200).render('create', { user: req.user }));
-app.post('/create', isLoggedIn, handle_Create);
-app.get('/delete', isLoggedIn, handle_Delete);
-
-app.post('/addreview', isLoggedIn, handle_AddReview);
-
-app.get("/logout", (req, res) => {
-    req.logout(function (err) {
-        if (err) { return next(err); }
-        res.redirect('/');
-    });
-});
-
-// RESTful API
-app.post('/api/library/:bookname', async (req, res) => {
-    if (req.params.bookname) {
-        await client.connect();
-        const db = client.db(dbName);
-        let newDoc = {
-            bookname: req.fields.bookname,
-            author: req.fields.author
-        };
-        await insertDocument(db, newDoc);
-        res.status(200).json({ "Successfully inserted": newDoc }).end();
-    } else res.status(500).json({ "error": "missing bookname" });
-});
-
-app.get('/api/library/:bookname', async (req, res) => {
-    if (req.params.bookname) {
-        let criteria = { bookname: req.params.bookname };
-        await client.connect();
-        const db = client.db(dbName);
-        const docs = await findDocument(db, criteria);
-        res.status(200).json(docs);
-    } else res.status(500).json({ "error": "missing bookname" });
-});
-
-app.put('/api/library/:bookname', async (req, res) => {
-    if (req.params.bookname) {
-        let criteria = { bookname: req.params.bookname };
-        let updateData = { author: req.fields.author };
-        await client.connect();
-        const db = client.db(dbName);
-        const results = await updateDocument(db, criteria, updateData);
-        res.status(200).json(results).end();
-    } else res.status(500).json({ "error": "missing bookname" });
-});
-
-app.delete('/api/library/:bookname', async (req, res) => {
-    if (req.params.bookname) {
-        let criteria = { bookname: req.params.bookname };
-        await client.connect();
-        const db = client.db(dbName);
-        const results = await deleteDocument(db, criteria);
-        res.status(200).json(results).end();
-    } else res.status(500).json({ "error": "missing bookname" });
-});
-
-const port = process.env.PORT || 3000;
-const host = '0.0.0.0';
-app.listen(port, () => console.log('Listening at https://project-381-9h99.onrender.com'));

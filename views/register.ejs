@@ -5,16 +5,16 @@
 </head>
 <body>
 <div class="container">
-    <h1>Hello, welcome to 📚Bookcase📚. Please log in.</h1>
+    <h1>Register for 📚Bookcase📚</h1>
     <% if (message) { %>
         <p style="color:red;"><%= message %></p>
     <% } %>
-    <form action="/login" method="POST">
+    <form action="/register" method="POST">
         Username: <input name="username" type="text" required/><br/>
         Password: <input name="password" type="password" required/><br/>
-        <input type="submit" value="Login"/>
+        <input type="submit" value="Register"/>
     </form>
-    <p>Don't have an account? <a href="/register">Register here</a></p>
+    <p>Already have an account? <a href="/login">Login here</a></p>
 </div>
 </body>
 </html>
