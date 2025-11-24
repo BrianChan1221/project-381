@@ -15,7 +15,7 @@ app.use(fileUpload()); // Middleware for handling file uploads
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
     secret: "tHiSiSasEcRetStr",
-    resave: true,
+    resave: false,
     saveUninitialized: true }));
 app.use(passport.initialize());
 app.use(passport.session());
