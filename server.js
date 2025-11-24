@@ -11,6 +11,12 @@ const fsPromises = require('fs').promises;
 
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
+app.use(formidable());
+app.use((req,res,next) => {
+    let d = new Date();
+    console.log(`TRACE: ${req.path} was requested at ${d.toLocaleDateString()}`);  
+    next();
+});
 const isLoggedIn = (req,res,next) => {
     if (req.isAuthenticated())
         return next();
