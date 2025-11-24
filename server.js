@@ -55,12 +55,18 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-app.use(session({
-  secret: "tHiSiIsasEcRetStr",
-  resave: false,
-  saveUninitialized: true
+//cookie-session
+const cookieSession = require('cookie-session');
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['tHiSiIsasEcRetStr', 'AnoTHeRSeCretStR'],
+  maxAge: 24 * 60 * 60 * 1000, // 24 hours
+  secure: process.env.NODE_ENV === 'production', 
+  httpOnly: true
 }));
-app.use(passport.initialize());
+
+app.use(passport.initialize()); 
 app.use(passport.session());
 
 const isLoggedIn = (req, res, next) => {
