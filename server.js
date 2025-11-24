@@ -15,8 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(session({
   secret: 'secret-key',  // Replace with your session secret
   resave: true,
-  saveUninitialized: true,
-  cookie: { secure: true } // Set to true if using HTTPS
+  saveUninitialized: true
 }));
 
 app.use(fileUpload()); // Middleware for handling file uploads
@@ -77,11 +76,6 @@ app.use(cookieSession({
 
 app.use(passport.initialize()); 
 app.use(passport.session());
-
-const isLoggedIn = (req, res, next) => {
-  if (req.isAuthenticated()) return next();
-  res.redirect('/login');
-};
 
 //Routes 
 
