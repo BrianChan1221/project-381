@@ -13,7 +13,7 @@ app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 
 app.use(session({
-  secret: 'tHiSiSasEcRetStr',  // Replace with your session secret
+  secret: 'secret-key',  // Replace with your session secret
   resave: true,
   saveUninitialized: true,
   cookie: { secure: true } // Set to true if using HTTPS
