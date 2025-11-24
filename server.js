@@ -11,7 +11,11 @@ const fsPromises = require('fs').promises;
 
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
-
+const isLoggedIn = (req,res,next) => {
+    if (req.isAuthenticated())
+        return next();
+    res.redirect('/login');
+}
 app.use(session({
   secret: 'secret-key',  // Replace with your session secret
   resave: true,
