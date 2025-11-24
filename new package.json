@@ -1,0 +1,22 @@
+{
+  "name": "Library-APP",
+  "description": "Library Bookshelf",
+  "author": "Group 17",
+  "version": "0.0.1",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "ejs": "*",
+    "express": "*",
+    "express-formidable": "*",
+    "express-session": "*",
+    "mongodb": "6.9.0",
+    "passport": "*",
+    "passport-local": "*",
+    "fs": "*",
+    "path": "*"
+  },
+  "engine": "node >= 16.0.0",
+  "scripts": {
+    "start": "nodemon server"
+  }
+}
