@@ -13,12 +13,7 @@ app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload()); // Middleware for handling file uploads
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(session({
-    secret: "tHiSiSasEcRetStr",
-    resave: false,
-    saveUninitialized: true }));
-app.use(passport.initialize());
-app.use(passport.session());
+
 
 // MongoDB config
 const mongourl = 'mongodb+srv://brian:Brian1221@cluster0.mq6o1ri.mongodb.net/?appName=Cluster0';
