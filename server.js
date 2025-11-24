@@ -241,7 +241,7 @@ curl -X POST -F 'bookname=jojojo' -F "filetoupload=@image.png" project-381-9h99.
 app.post('/api/library/:bookname', async (req,res) => { 
     if (req.params.bookname) {
         console.log(req.body)
-		//try {
+		try {
 			await client.connect();
 			console.log("Connected successfully to server");
 		    const db = client.db(dbName);
@@ -254,12 +254,12 @@ app.post('/api/library/:bookname', async (req,res) => {
 		        newDoc.photo = Buffer.from(data).toString('base64');}
 			await insertDocument(db, newDoc);
 		    res.status(200).json({"Successfully inserted":newDoc}).end();
-		//} catch(err) {
-		//	console.error(err);
-		//} finally {
-		//	await client.close();
-		//    console.log("Closed DB connection");
-		//}
+		} catch(err) {
+			console.error(err);
+		} finally {
+			await client.close();
+		    console.log("Closed DB connection");
+		}
     } else {
         res.status(500).json({"error": "missing bookname"});
     }
@@ -275,18 +275,18 @@ app.get('/api/library/:bookname', async (req,res) => { //async programming way
         let criteria = {};
         criteria['bookname'] = req.params.bookname;
 		/*const criteria = { bookingid: req.params.bookingid }*/ //another coding way	
-		//try {
+		try {
 			await client.connect();
 		    console.log("Connected successfully to server");
 			const db = client.db(dbName);
 			const docs = await findDocument(db, criteria);
 		    res.status(200).json(docs);
-		//} catch(err) {
-		//	console.error(err);
-		//} finally {
-		//	await client.close();
-		//    console.log("Closed DB connection");
-		//}
+		} catch(err) {
+			console.error(err);
+		} finally {
+			await client.close();
+		    console.log("Closed DB connection");
+		}
 	} else {
         res.status(500).json({"error": "missing bookname"}).end();
     }
@@ -302,14 +302,14 @@ app.put('/api/library/:bookname', async (req,res) => {
         console.log(req.body)
 		let criteria = {};
         criteria['bookname'] = req.params.bookname;
-		//try {
+		try {
 			await client.connect();
 			console.log("Connected successfully to server");
 		    const db = client.db(dbName);
 
-		    // const DOCID = {
-		    //     _id: ObjectId.createFromHexString(req.fields._id)
-		    // }
+		     const DOCID = {
+		         _id: ObjectId.createFromHexString(req.fields._id)
+		     }
 
 		    let updateData = {
 		        bookname: req.fields.bookname || req.params.bookname,
@@ -323,12 +323,12 @@ app.put('/api/library/:bookname', async (req,res) => {
 
 		    const results = await updateDocument(db, criteria, updateData);
 		    res.status(200).json(results).end();
-		//} catch(err) {
-		//	console.error(err);
-		//} finally {
-		//	await client.close();
-		//    console.log("Closed DB connection");
-		//}
+		} catch(err) {
+			console.error(err);
+		} finally {
+			await client.close();
+		    console.log("Closed DB connection");
+		}
     } else {
         res.status(500).json({"error": "missing bookname"});
     }
@@ -342,21 +342,21 @@ app.delete('/api/library/:bookname', async (req,res) => {
 		console.log(req.body)
 		let criteria = {};
         criteria['bookname'] = req.params.bookname;
-		//try {
+		try {
 			await client.connect();
 			console.log("Connected successfully to server");
 		    const db = client.db(dbName);
-		    // let DOCID = { '_id': ObjectId.createFromHexString(req.query._id) };
-		    // let docs = await findDocument(db, DOCID);
+		     let DOCID = { '_id': ObjectId.createFromHexString(req.query._id) };
+		     let docs = await findDocument(db, DOCID);
 		    const results = await deleteDocument(db, criteria);
             console.log(results)
 		    res.status(200).json(results).end();
-		//} catch(err) {
-		//	console.error(err);
-		//} finally {
-		//	await client.close();
-		//    console.log("Closed DB connection");
-		//}
+		} catch(err) {
+			console.error(err);
+		} finally {
+			await client.close();
+		   console.log("Closed DB connection");
+		}
     } else {
         res.status(500).json({"error": "missing bookname"});       
     }
