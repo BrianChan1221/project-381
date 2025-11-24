@@ -3,11 +3,9 @@
 ## Group Info
 - **Course Code**: COMP3810SEF/COMP381F
 - **Group No**: 17
-| **Members**     |                   |
-|-----------------|-------------------|
-| Chan Hoi Lun    | 12960272          |
-| Chan Man Tik    | 13138272          |
-| Chan King Yin   | 13130121          |
+- **Members**: Chan Hoi Lun 12960272
+            Chan Man Tik 13138272
+            Chan King Yin13130121
 ---
 
 ## Project File Introduction
