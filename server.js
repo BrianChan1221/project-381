@@ -15,7 +15,7 @@ app.use(formidable());
 const facebookAuth = {
     'clientID': '1348713563408776',
     'clientSecret': '2fca2b3a887a1b54e4f2dbb12425736b',
-    'callbackURL': 'http://localhost:8099/auth/facebook/callback'
+    'callbackURL': 'https://project-381-9h99.onrender.com/auth/facebook/callback'
 };
 
 var user = {};
@@ -266,7 +266,7 @@ app.get("/logout", (req, res) => {
     });
 });
 
-// RESTful API (Unchanged)
+// RESTful API
 app.post('/api/library/:bookname', async (req, res) => {
     if (req.params.bookname) {
         await client.connect();

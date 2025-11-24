@@ -1,4 +1,4 @@
-# Library Ideas Web App
+# &#128218;Bookcase&#128218; WEB APP
 
 ## Group Info
 - **Course Code**: COMP3810SEF/COMP381F
@@ -37,18 +37,18 @@ https://project-381-9h99.onrender.com
    - Logout by clicking “Logout”.
 
 2. **CRUD Web Pages**
-   - `GET /ideas` — List & search ideas
-   - Create: Use form to submit new book & idea
-   - Update: Click “Edit” to modify your own idea
-   - Delete: Click “Delete” to remove your own idea
+   - GET: List & search bookcases
+   - Create: Use form to submit new bookcase
+   - Update: Click “Edit” to modify your own bookcases
+   - Delete: Click “Delete” to remove your own bookcase
 
 3. **RESTful API**
    | Method | Endpoint | Description |
    |---------|-----------|-------------|
-   | GET | `/api/library/:bookname` | Get all ideas |
-   | POST | `/api/library/:bookname` | Create new idea |
-   | PUT | `/api/library/:bookname` | Update idea by ID |
-   | DELETE | `/api/library/:bookname` | Delete idea by ID |
+   | GET | `/api/library/:bookname` | Get all bookcases |
+   | POST | `/api/library/:bookname` | Create new bookcase |
+   | PUT | `/api/library/:bookname` | Update bookcase by ID |
+   | DELETE | `/api/library/:bookname` | Delete bookcase by ID |
 
    **Example test with CURL:**
    \\curl -X POST -H "Content-Type: application/json" -d '{"bookName":"1984","idea":"Great dystopian novel"}' https://comp3810sef-group17.onrender.com/api/ideas
