@@ -14,7 +14,7 @@ app.use(fileUpload());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB configuration
-const mongourl = 'your_mongo_connection_string'; // Replace with your MongoDB connection string
+const mongourl = 'mongodb+srv://brian:Brian1221@cluster0.mq6o1ri.mongodb.net/?appName=Cluster0'; 
 const dbName = 'library_dataset';
 const collectionName = 'bookshelfs';
 const userCollection = 'users';
