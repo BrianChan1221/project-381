@@ -1,321 +1,213 @@
-var express = require('express'),
-    app = express(),
-    passport = require('passport'),
-    FacebookStrategy = require('passport-facebook').Strategy,
-    { MongoClient, ServerApiVersion, ObjectId } = require("mongodb"),
-    formidable = require('express-formidable'),
-    session = require('express-session'),
-    fsPromises = require('fs').promises;
-    path = require('path');
+const express = require('express');
+const fileUpload = require('express-fileupload');
+const app = express();
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const session = require('express-session');
+const bcrypt = require('bcrypt');
+const path = require('path');
+const fsPromises = require('fs').promises;
 
 app.set('view engine', 'ejs');
-app.use(formidable());
+app.use(express.urlencoded({ extended: true }));
+app.use(fileUpload()); // Middleware for handling file uploads
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Facebook Auth Strategy
-const facebookAuth = {
-    'clientID': '',
-    'clientSecret': '',
-    'callbackURL': 'https://project-381-9h99.onrender.com/auth/facebook/callback'
-};
-
-var user = {};
-passport.serializeUser(function (user, done) { done(null, user); });
-passport.deserializeUser(function (id, done) { done(null, user); });
-
-passport.use(new FacebookStrategy({
-    "clientID": facebookAuth.clientID,
-    "clientSecret": facebookAuth.clientSecret,
-    "callbackURL": facebookAuth.callbackURL
-},
-  function (token, refreshToken, profile, done) {
-    console.log("Facebook Profile: " + JSON.stringify(profile));
-    console.log(profile);
-    user = {};
-    user['id'] = profile.id;
-    user['name'] = profile.displayName;
-    user['type'] = profile.provider;  
-    console.log('user object: ' + JSON.stringify(user));
-    return done(null,user);  
-  })
-);
-
-// MongoDB Configuration
+// MongoDB config
 const mongourl = 'mongodb+srv://brian:Brian1221@cluster0.mq6o1ri.mongodb.net/?appName=Cluster0';
 const dbName = 'library_dataset';
 const collectionName = "bookshelfs";
+const userCollection = "users";
+
+let db;
 const client = new MongoClient(mongourl, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    }
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
 });
 
-// Database Functions
-const insertDocument = async (db, doc) => {
-    var collection = db.collection(collectionName);
-    let results = await collection.insertOne(doc);
-    console.log("insert one document:" + JSON.stringify(results));
-    return results;
-};
+// Passport: local strategy setup
+passport.use(new LocalStrategy(async (username, password, done) => {
+  try {
+    const user = await db.collection(userCollection).findOne({ username });
+    if (!user) return done(null, false, { message: 'Incorrect username.' });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return done(null, false, { message: 'Incorrect password.' });
+    return done(null, user);
+  } catch (err) {
+    return done(err);
+  }
+}));
 
-const findDocument = async (db, criteria = {}) => {
-    var collection = db.collection(collectionName);
-    let results = await collection.find(criteria).toArray();
-    console.log("find the documents:" + JSON.stringify(results));
-    return results;
-};
-
-const updateDocument = async (db, criteria, updateData) => {
-    var collection = db.collection(collectionName);
-    let results = await collection.updateOne(criteria, { $set: updateData });
-    console.log("update one document:" + JSON.stringify(results));
-    return results;
-};
-
-const pushReview = async (db, bookId, review) => {
-    var collection = db.collection(collectionName);
-    let results = await collection.updateOne(
-        { _id: bookId },
-        { $push: { reviews: review } }
-    );
-    console.log("pushed review:" + JSON.stringify(results));
-    return results;
-};
-
-const deleteDocument = async (db, criteria) => {
-    var collection = db.collection(collectionName);
-    let results = await collection.deleteMany(criteria);
-    console.log("delete one document:" + JSON.stringify(results));
-    return results;
-};
-
-// Handlers
-const handle_Create = async (req, res) => {
-    //try {
-        await client.connect();
-        const db = client.db(dbName);
-        let newDoc = {
-            userid: req.user.id,
-            bookname: req.fields.bookname,
-            author: req.fields.author,
-            reviews: [] // Added field
-        };
-
-        if (req.files.filetoupload && req.files.filetoupload.size > 0) {
-            const data = await fsPromises.readFile(req.files.filetoupload.path);
-            newDoc.photo = Buffer.from(data).toString('base64');
-        }
-
-        await insertDocument(db, newDoc);
-        res.redirect('/');
-    //} catch (err) { console.error(err); }
-    //finally {
-    //    await client.close();
-    //}
-};
-
-const handle_Find = async (req, res) => {
-    //try {
-        await client.connect();
-        const db = client.db(dbName);
-        const docs = await findDocument(db);
-        res.status(200).render('main', { nBookshelfs: docs.length, bookshelfs: docs, user: req.user });
-    //} catch (err) { console.error(err); }
-    //finally {
-    //    await client.close();
-    //}
-};
-
-const handle_Details = async (req, res, criteria) => {
-    //try {
-        await client.connect();
-        const db = client.db(dbName);
-        let DOCID = { _id: ObjectId.createFromHexString(criteria._id) };
-        const docs = await findDocument(db, DOCID);
-        res.status(200).render('details', { bookshelfs: docs[0], user: req.user });
-    //} catch (err) { console.error(err); }
-    //finally {
-    //    await client.close();
-    //}
-};
-
-const handle_Edit = async (req, res, criteria) => {
-    //try {
-        await client.connect();
-        const db = client.db(dbName);
-        let DOCID = { '_id': ObjectId.createFromHexString(criteria._id) };
-        let docs = await findDocument(db, DOCID);
-
-        if (docs.length > 0 && docs[0].userid == req.user.id) {
-            res.status(200).render('edit', { bookshelfs: docs[0], user: req.user });
-        } else {
-            res.status(500).render('info', { message: 'Unable to edit - you are not bookshelf owner!', user: req.user });
-        }
-    //} catch (err) { console.error(err); }
-    //finally {
-    //    await client.close();
-    //}
-};
-
-const handle_Update = async (req, res, criteria) => {
-    //try {
-        await client.connect();
-        const db = client.db(dbName);
-
-        const DOCID = {
-            _id: ObjectId.createFromHexString(req.fields._id)
-        };
-        let updateData = {
-            bookname: req.fields.bookname,
-            author: req.fields.author,
-        };
-
-        if (req.files.filetoupload && req.files.filetoupload.size > 0) {
-            const data = await fsPromises.readFile(req.files.filetoupload.path);
-            updateData.photo = Buffer.from(data).toString('base64');
-        }
-
-        const results = await updateDocument(db, DOCID, updateData);
-        res.status(200).render('info', { message: 'Update sucessfully.', user: req.user });
-    //} catch (err) { console.error(err); }
-    //finally {
-    //    await client.close();
-    //}
-};
-
-const handle_Delete = async (req, res) => {
-    //try {
-        await client.connect();
-        const db = client.db(dbName);
-        let DOCID = { '_id': ObjectId.createFromHexString(req.query._id) };
-        let docs = await findDocument(db, DOCID);
-        if (docs.length > 0 && docs[0].userid == req.user.id) {
-            await deleteDocument(db, DOCID);
-            res.status(200).render('info', { message: `Book name ${docs[0].bookname} removed.`, user: req.user });
-        } else {
-            res.status(500).render('info', { message: 'Unable to delete - you are not bookshelf owner!', user: req.user });
-        }
-    //} catch (err) { console.error(err); }
-    //finally { await client.close(); }
-};
-
-// New Handler: Add Review
-const handle_AddReview = async (req, res) => {
-    //try {
-        await client.connect();
-        const db = client.db(dbName);
-        const bookId = ObjectId.createFromHexString(req.fields._id);
-        const reviewText = req.fields.review;
-        const review = {
-            userid: req.user.id,
-            username: req.user.name,
-            text: reviewText,
-            date: new Date().toISOString()
-        };
-        await pushReview(db, bookId, review);
-        res.redirect(`/details?_id=${req.fields._id}`);
-    //} catch (err) { console.error(err); }
-    //finally { await client.close(); }
-};
-
-// Middleware
-app.use((req, res, next) => {
-    let d = new Date();
-    console.log(`TRACE: ${req.path} was requested at ${d.toLocaleString()}`);
-    next();
+passport.serializeUser((user, done) => {
+  done(null, user._id.toString());
 });
 
-const isLoggedIn = (req, res, next) => {
-    if (req.isAuthenticated())
-         return next();
-    res.redirect('/login');
-};
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await db.collection(userCollection).findOne({ _id: new ObjectId(id) });
+    done(null, user);
+  } catch (err) {
+    done(err);
+  }
+});
 
 app.use(session({
-    secret: "tHiSiSasEcRetStr",
-    resave: true,
-    saveUninitialized: true
+  secret: "tHiSiIsasEcRetStr",
+  resave: false,
+  saveUninitialized: true
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Routes
-app.get("/login", function (req, res){
-    res.status(200).render('login', { user: req.user });
+const isLoggedIn = (req, res, next) => {
+  if (req.isAuthenticated()) return next();
+  res.redirect('/login');
+};
+
+// ------- Routes ----------
+
+app.get('/login', (req, res) => {
+  res.status(200).render('login', { message: req.query.message || "" });
 });
-app.get("/auth/facebook", passport.authenticate("facebook", { scope: "email" }));
-app.get("/auth/facebook/callback",
-    passport.authenticate("facebook", {
-        successRedirect: "/main",
-        failureRedirect: "/"
-    })
+
+// Login with local strategy
+app.post('/login', (req, res, next) => {
+  passport.authenticate('local', {
+    successRedirect: '/main',
+    failureRedirect: '/login?message=Invalid username or password'
+  })(req, res, next);
+});
+
+app.get('/register', (req, res) => {
+  res.status(200).render('register', { message: "" });
+});
+
+app.post('/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    if (!username || !password) {
+      return res.render('register', { message: 'Username and password required.' });
+    }
+    const existingUser = await db.collection(userCollection).findOne({ username });
+    if (existingUser) {
+      return res.render('register', { message: 'Username already exists' });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = { username, password: hashedPassword, name: username };
+    await db.collection(userCollection).insertOne(newUser);
+    res.redirect('/login?message=Registration successful, please log in.');
+  } catch (err) {
+    console.error(err);
+    res.status(500).render('register', { message: 'Server error' });
+  }
+});
+
+app.get('/logout', (req, res, next) => {
+  req.logout(function (err) {
+    if (err) return next(err);
+    res.redirect('/login');
+  });
+});
+
+const insertDocument = async (db, doc) => await db.collection(collectionName).insertOne(doc);
+const findDocument = async (db, c = {}) => await db.collection(collectionName).find(c).toArray();
+const updateDocument = async (db, c, update) => await db.collection(collectionName).updateOne(c, { $set: update });
+const pushReview = async (db, bookId, review) => db.collection(collectionName).updateOne(
+  { _id: bookId }, { $push: { reviews: review } }
 );
+const deleteDocument = async (db, c) => db.collection(collectionName).deleteMany(c);
 
+// Add routes
 app.get('/', isLoggedIn, (req, res) => res.redirect('/main'));
-app.get('/main', isLoggedIn, handle_Find);
-app.get('/details', isLoggedIn, (req, res) => handle_Details(req, res, req.query));
-app.get('/edit', isLoggedIn, (req, res) => handle_Edit(req, res, req.query));
-app.post('/update', isLoggedIn, (req, res) => handle_Update(req, res, req.query));
-app.get('/create', isLoggedIn, (req, res) => res.status(200).render('create', { user: req.user }));
-app.post('/create', isLoggedIn, handle_Create);
-app.get('/delete', isLoggedIn, handle_Delete);
-
-app.post('/addreview', isLoggedIn, handle_AddReview);
-
-app.get("/logout", (req, res) => {
-    req.logout(function (err) {
-        if (err) { return next(err); }
-        res.redirect('/');
-    });
+app.get('/main', isLoggedIn, async (req, res) => {
+  const docs = await findDocument(db);
+  res.status(200).render('main', { nBookshelfs: docs.length, bookshelfs: docs, user: req.user });
 });
 
-// RESTful API
-app.post('/api/library/:bookname', async (req, res) => {
-    if (req.params.bookname) {
-        await client.connect();
-        const db = client.db(dbName);
-        let newDoc = {
-            bookname: req.fields.bookname,
-            author: req.fields.author
-        };
-        await insertDocument(db, newDoc);
-        res.status(200).json({ "Successfully inserted": newDoc }).end();
-    } else res.status(500).json({ "error": "missing bookname" });
+app.get('/details', isLoggedIn, async (req, res) => {
+  let DOCID = { _id: new ObjectId(req.query._id) };
+  const docs = await findDocument(db, DOCID);
+  res.status(200).render('details', { bookshelfs: docs[0], user: req.user });
 });
 
-app.get('/api/library/:bookname', async (req, res) => {
-    if (req.params.bookname) {
-        let criteria = { bookname: req.params.bookname };
-        await client.connect();
-        const db = client.db(dbName);
-        const docs = await findDocument(db, criteria);
-        res.status(200).json(docs);
-    } else res.status(500).json({ "error": "missing bookname" });
+app.get('/edit', isLoggedIn, async (req, res) => {
+  let DOCID = { _id: new ObjectId(req.query._id) };
+  let docs = await findDocument(db, DOCID);
+  if (docs.length > 0 && docs[0].userid === req.user._id.toString()) {
+    res.status(200).render('edit', { bookshelfs: docs[0], user: req.user });
+  } else {
+    res.status(500).render('info', { message: 'Unable to edit - you are not bookshelf owner!', user: req.user });
+  }
 });
 
-app.put('/api/library/:bookname', async (req, res) => {
-    if (req.params.bookname) {
-        let criteria = { bookname: req.params.bookname };
-        let updateData = { author: req.fields.author };
-        await client.connect();
-        const db = client.db(dbName);
-        const results = await updateDocument(db, criteria, updateData);
-        res.status(200).json(results).end();
-    } else res.status(500).json({ "error": "missing bookname" });
+app.post('/update', isLoggedIn, async (req, res) => {
+  const DOCID = { _id: new ObjectId(req.body._id) };
+  let updateData = {
+    bookname: req.body.bookname,
+    author: req.body.author,
+  };
+  if (req.files && req.files.filetoupload && req.files.filetoupload.size > 0) {
+    const data = await fsPromises.readFile(req.files.filetoupload.path);
+    updateData.photo = Buffer.from(data).toString('base64');
+  }
+  await updateDocument(db, DOCID, updateData);
+  res.status(200).render('info', { message: 'Update successfully.', user: req.user });
 });
 
-app.delete('/api/library/:bookname', async (req, res) => {
-    if (req.params.bookname) {
-        let criteria = { bookname: req.params.bookname };
-        await client.connect();
-        const db = client.db(dbName);
-        const results = await deleteDocument(db, criteria);
-        res.status(200).json(results).end();
-    } else res.status(500).json({ "error": "missing bookname" });
+app.get('/delete', isLoggedIn, async (req, res) => {
+  let DOCID = { _id: new ObjectId(req.query._id) };
+  let docs = await findDocument(db, DOCID);
+  if (docs.length > 0 && docs[0].userid === req.user._id.toString()) {
+    await deleteDocument(db, DOCID);
+    res.status(200).render('info', { message: `Book name ${docs[0].bookname} removed.`, user: req.user });
+  } else {
+    res.status(500).render('info', { message: 'Unable to delete - you are not bookshelf owner!', user: req.user });
+  }
 });
 
-const port = process.env.PORT || 3000;
-const host = '0.0.0.0';
-app.listen(port, () => console.log('Listening at https://localhost:${port}'));
+app.post('/addreview', isLoggedIn, async (req, res) => {
+  const bookId = new ObjectId(req.body._id);
+  const review = {
+    userid: req.user._id.toString(),
+    username: req.user.name,
+    text: req.body.review,
+    date: new Date().toISOString()
+  };
+  await pushReview(db, bookId, review);
+  res.redirect(`/details?_id=${req.body._id}`);
+});
+
+// Add GET and POST routes for /create
+app.get('/create', isLoggedIn, (req, res) => {
+  res.render('create', { user: req.user });
+});
+
+app.post('/create', isLoggedIn, async (req, res) => {
+  console.log('Received data:', req.body); // For debugging
+
+  const bookData = {
+    bookname: req.body.bookname,
+    author: req.body.author,
+    userid: req.user._id.toString(),
+  };
+
+  // Handle file upload if needed
+  if (req.files && req.files.filetoupload && req.files.filetoupload.size > 0) {
+    const data = await fsPromises.readFile(req.files.filetoupload.path);
+    bookData.photo = Buffer.from(data).toString('base64');
+  }
+
+  await insertDocument(db, bookData);
+  res.redirect('/main'); // Redirect after creation
+});
+
+// Connect to MongoDB once and start server
+const port = process.env.PORT || 8099;
+client.connect().then(() => {
+  db = client.db(dbName);
+  app.listen(port, () => console.log(`Listening at http://localhost:${port}`));
+});
