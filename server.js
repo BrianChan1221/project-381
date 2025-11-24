@@ -11,12 +11,14 @@ const fsPromises = require('fs').promises;
 
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
+
 app.use(session({
   secret: 'tHiSiSasEcRetStr',  // Replace with your session secret
-  resave: false,
+  resave: true,
   saveUninitialized: true,
   cookie: { secure: true } // Set to true if using HTTPS
 }));
+
 app.use(fileUpload()); // Middleware for handling file uploads
 app.use(express.static(path.join(__dirname, 'public')));
 
