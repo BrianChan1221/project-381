@@ -1,0 +1,21 @@
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="container">
+    <h1>Hello, welcome to 📚Bookcase📚. Please log in.</h1>
+    <% if (message) { %>
+        <p style="color:red;"><%= message %></p>
+    <% } %>
+    <form action="/login" method="POST">
+        Username: <input name="username" type="text" required/><br/>
+        Password: <input name="password" type="password" required/><br/>
+        <input type="submit" value="Login"/>
+    </form>
+    <p>Don't have an account? <a href="/register">Register here</a></p>
+</div>
+</body>
+</html>
+

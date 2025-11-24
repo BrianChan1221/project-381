@@ -1,0 +1,21 @@
+<html>
+    <head>
+    	<meta charset="UTF-8"/>
+    	<link rel="stylesheet" href="/css/style.css" />
+    </head>
+    <body>
+	<div class="container">
+    
+		<H1>&#128218;Bookcase&#128218;</H1>
+		<hr/>
+	<p><span style="font-size:64px;">&#x1F4DD;</span></p>
+        <form action="/update" method="POST" enctype="multipart/form-data">
+            Book Name: <input name="bookname" value=<%= bookshelfs.bookname %>><br>
+            Author: <input name="author" value=<%= bookshelfs.author %> /><br>
+            <input type="file" name="filetoupload"><br>
+            <input type="hidden" name="_id" value=<%= bookshelfs._id %>>
+            <input type="submit" value="update">  
+        </form>
+        </div>
+    </body>
+</html>
