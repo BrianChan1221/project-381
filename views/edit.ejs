@@ -1,21 +1,29 @@
-<html>
-    <head>
-    	<meta charset="UTF-8"/>
-    	<link rel="stylesheet" href="/css/style.css" />
-    </head>
-    <body>
-	<div class="container">
-    
-		<H1>&#128218;Bookcase&#128218;</H1>
-		<hr/>
-	<p><span style="font-size:64px;">&#x1F4DD;</span></p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css" />
+    <title>Edit Book</title>
+</head>
+<body>
+    <div class="container">
+        <h1>&#128218; Bookcase &#128218;</h1>
+        <hr/>
+        <p><span style="font-size:64px;">&#x1F4DD;</span></p>
         <form action="/update" method="POST" enctype="multipart/form-data">
-            Book Name: <input name="bookname" value=<%= bookshelfs.bookname %>><br>
-            Author: <input name="author" value=<%= bookshelfs.author %> /><br>
-            <input type="file" name="filetoupload"><br>
-            <input type="hidden" name="_id" value=<%= bookshelfs._id %>>
-            <input type="submit" value="update">  
+            <label for="bookname">Book Name:</label>
+            <input id="bookname" name="bookname" type="text" value="<%= book.bookname %>" required><br>
+
+            <label for="author">Author:</label>
+            <input id="author" name="author" type="text" value="<%= book.author %>" required><br>
+
+            <label for="filetoupload">Upload Book Cover:</label>
+            <input id="filetoupload" type="file" name="filetoupload"><br>
+
+            <input type="hidden" name="_id" value="<%= book._id %>">
+            <input type="submit" value="Update">  
         </form>
-        </div>
-    </body>
+    </div>
+</body>
 </html>

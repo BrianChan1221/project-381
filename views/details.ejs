@@ -1,51 +1,65 @@
-<html>
-    <head>
-    	<meta charset="UTF-8"/>
-    	<link rel="stylesheet" href="/css/style.css" />
-    </head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css" />
+    <title>Book Details</title>
+</head>
 <body>
 <div class="container">
-  <h1>&#128218;Bookcase&#128218;</h1>
-  <hr>
-  <h2>Bookcase&#128218;</h2>
-  <p><b>Book Name:</b> <%= bookshelfs.bookname %></p>
-  <p><b>Author:</b> <%= bookshelfs.author %></p>
+    <h1>&#128218; Bookcase &#128218;</h1>
+    <hr>
+    <h2>Book Details</h2>
 
-  <% if (bookshelfs.photo) { %>
-    <img src="data:image/jpeg;base64,<%= bookshelfs.photo %>" width="200" alt="Book Image"><br>
-  <% } %>
+    <p><strong>Book Name:</strong> <%= book.bookname %></p>
+    <p><strong>Author:</strong> <%= book.author %></p>
 
-  <% if (bookshelfs.userid) { %>
-    <p><small>Created by User ID: <%= bookshelfs.userid %></small></p>
-  <% } %>
+    <% if (book.photo) { %>
+        <img src="data:image/jpeg;base64,<%= book.photo %>" width="200" alt="Book Image"><br>
+    <% } %>
 
-  <hr>
-  <h3>Reviews</h3>
+    <% if (book.userid) { %>
+        <p><small>Created by User ID: <%= book.userid %></small></p>
+    <% } %>
 
-  <% if (bookshelfs.reviews && bookshelfs.reviews.length > 0) { %>
-    <ul>
-      <% bookshelfs.reviews.forEach(function(r){ %>
-        <li>
-          <b><%= r.username %></b> (<%= new Date(r.date).toLocaleString() %>): <%= r.text %>
-        </li>
-      <% }) %>
-    </ul>
-  <% } else { %>
-    <p>No reviews yet.</p>
-  <% } %>
+    <hr>
+    <h3>Reviews</h3>
 
-  <hr>
-  <h3>Add a Review</h3>
-  <form action="/addreview" method="POST">
-    <input type="hidden" name="_id" value="<%= bookshelfs._id %>">
-    <textarea name="review" required placeholder="Write your review..." rows="4" cols="40"></textarea><br>
-    <input type="submit" value="Add Review">
-  </form>
+    <% if (book.reviews && book.reviews.length > 0) { %>
+        <ul>
+            <% book.reviews.forEach(function(r) { %>
+                <li>
+                    <strong><%= r.username %></strong> (<%= new Date(r.date).toLocaleString() %>): <%= r.text %>
+                </li>
+            <% }) %>
+        </ul>
+    <% } else { %>
+        <p>No reviews yet.</p>
+    <% } %>
 
-  <hr>
-  <a href="/edit?_id=<%= bookshelfs._id %>">Edit</a><br>
-  <a href="/delete?_id=<%= bookshelfs._id %>">Delete</a><br>
-  <a href="/">Home</a>
+    <hr>
+    <h3>Add a Review</h3>
+    <form action="/addreview" method="POST">
+        <input type="hidden" name="_id" value="<%= book._id %>">
+        <textarea name="review" required placeholder="Write your review..." rows="4" cols="40"></textarea><br>
+        <input type="submit" value="Add Review">
+    </form>
+
+    <hr>
+    <h3>Actions</h3>
+    <form action="/edit" method="GET" style="display:inline;">
+        <input type="hidden" name="_id" value="<%= book._id %>">
+        <input type="submit" value="Edit">
+    </form>
+
+    <form action="/delete" method="POST" style="display:inline;">
+        <input type="hidden" name="_id" value="<%= book._id %>">
+        <input type="submit" value="Delete" onclick="return confirm('Are you sure you want to delete this book?');">
+    </form>
+
+    <hr>
+    <a href="/main">Home</a>
 </div>
 </body>
 </html>

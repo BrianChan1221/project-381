@@ -4,24 +4,19 @@
   "author": "Group 17",
   "version": "0.0.1",
   "dependencies": {
-    "bcrypt": "^5.1.0",
-    "cookie-session": "2.1.1",
-    "ejs": "*",
-    "express": "*",
-    "express-formidable": "*",
-    "express-fileupload": "*",  
-    "express-session": "*",
-    "mongodb": "6.9.0",
-    "passport": "*",
-    "passport-local": "*",
+    "bcrypt": "^5.1.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "express-fileupload": "^1.5.2",
+    "express-session": "^1.18.2",
     "fs": "*",
+    "mongodb": "^6.9.0",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
     "path": "*"
   },
   "engine": "node >= 16.0.0",
   "scripts": {
     "start": "nodemon server"
-  },
-  "devDependencies": {
-    "nodemon": "*"
   }
 }

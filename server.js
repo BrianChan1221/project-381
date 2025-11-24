@@ -1,243 +1,260 @@
 const express = require('express');
 const fileUpload = require('express-fileupload');
-const session = require('express-session');
-const formidable = require('express-formidable');
-const app = express();
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const session = require('express-session');
 const bcrypt = require('bcrypt');
 const path = require('path');
-const fsPromises = require('fs').promises;
 
+const app = express();
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
-app.use(formidable());
-app.use((req,res,next) => {
-    let d = new Date();
-    console.log(`TRACE: ${req.path} was requested at ${d.toLocaleDateString()}`);  
-    next();
-});
-
-const isLoggedIn = (req,res,next) => {
-    if (req.isAuthenticated())
-        return next();
-    res.redirect('/login');
-}
-app.use(express.json());
-app.use(session({
-  secret: 'tHiSiSasEcRetStr',  // Replace with your session secret
-  resave: true,
-  saveUninitialized: true
-}));
-app.use(passport.initialize());
-app.use(passport.session());
- // Middleware for handling file uploads
+app.use(fileUpload());
 app.use(express.static(path.join(__dirname, 'public')));
 
-
-// MongoDB config
-const mongourl = 'mongodb+srv://brian:Brian1221@cluster0.mq6o1ri.mongodb.net/?appName=Cluster0';
+// MongoDB configuration
+const mongourl = 'your_mongo_connection_string'; // Replace with your MongoDB connection string
 const dbName = 'library_dataset';
-const collectionName = "bookshelfs";
-const userCollection = "users";
+const collectionName = 'bookshelfs';
+const userCollection = 'users';
 
 let db;
 const client = new MongoClient(mongourl, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
-// Passport: strategy setup
+// Passport setup
 passport.use(new LocalStrategy(async (username, password, done) => {
-  try {
-    const user = await db.collection(userCollection).findOne({ username });
-    if (!user) return done(null, false, { message: 'Incorrect username.' });
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return done(null, false, { message: 'Incorrect password.' });
-    return done(null, user);
-  } catch (err) {
-    return done(err);
-  }
+    try {
+        const user = await db.collection(userCollection).findOne({ username });
+        if (!user) return done(null, false, { message: 'Incorrect username.' });
+
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) return done(null, false, { message: 'Incorrect password.' });
+
+        return done(null, user);
+    } catch (err) {
+        return done(err);
+    }
 }));
 
 passport.serializeUser((user, done) => {
-  done(null, user._id.toString());
+    done(null, user._id.toString());
 });
 
 passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await db.collection(userCollection).findOne({ _id: new ObjectId(id) });
-    done(null, user);
-  } catch (err) {
-    done(err);
-  }
+    try {
+        const user = await db.collection(userCollection).findOne({ _id: new ObjectId(id) });
+        done(null, user);
+    } catch (err) {
+        done(err);
+    }
 });
 
-//cookie-session
-const cookieSession = require('cookie-session');
-
-app.use(cookieSession({
-  name: 'session',
-  keys: ['tHiSiIsasEcRetStr', 'AnoTHeRSeCretStR'],
-  maxAge: 24 * 60 * 60 * 1000, // 24 hours
-  secure: process.env.NODE_ENV === 'production', 
-  httpOnly: true
+// Session middleware
+app.use(session({
+    secret: "tHiSiIsasEcRetStr",
+    resave: false,
+    saveUninitialized: true
 }));
-
-app.use(passport.initialize()); 
+app.use(passport.initialize());
 app.use(passport.session());
 
-//Routes 
+// Utility function to check if the user is logged in
+const isLoggedIn = (req, res, next) => {
+    if (req.isAuthenticated()) return next();
+    res.redirect('/login'); // Redirect if not authenticated
+};
 
-app.get('/login', (req, res) => {
-  res.status(200).render('login', { message: req.query.message || "" });
+// ------- Root Route ---------
+app.get('/', (req, res) => {
+    res.redirect('/main'); // Redirect to main page
 });
 
-// Login with local strategy
+// ------- User Routes ---------
+app.get('/login', (req, res) => {
+    res.status(200).render('login', { message: req.query.message || "" });
+});
+
 app.post('/login', (req, res, next) => {
-  passport.authenticate('local', {
-    successRedirect: '/main',
-    failureRedirect: '/login?message=Invalid username or password'
-  })(req, res, next);
+    passport.authenticate('local', {
+        successRedirect: '/main',
+        failureRedirect: '/login?message=Invalid username or password'
+    })(req, res, next);
 });
 
 app.get('/register', (req, res) => {
-  res.status(200).render('register', { message: "" });
+    res.status(200).render('register', { message: "" });
 });
 
 app.post('/register', async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    if (!username || !password) {
-      return res.render('register', { message: 'Username and password required.' });
+    try {
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.render('register', { message: 'Username and password required.' });
+        }
+
+        const existingUser = await db.collection(userCollection).findOne({ username });
+        if (existingUser) {
+            return res.render('register', { message: 'Username already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const newUser = { username, password: hashedPassword, name: username };
+        await db.collection(userCollection).insertOne(newUser);
+        res.redirect('/login?message=Registration successful, please log in.');
+    } catch (err) {
+        console.error(err);
+        res.status(500).render('register', { message: 'Server error' });
     }
-    const existingUser = await db.collection(userCollection).findOne({ username });
-    if (existingUser) {
-      return res.render('register', { message: 'Username already exists' });
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = { username, password: hashedPassword, name: username };
-    await db.collection(userCollection).insertOne(newUser);
-    res.redirect('/login?message=Registration successful, please log in.');
-  } catch (err) {
-    console.error(err);
-    res.status(500).render('register', { message: 'Server error' });
-  }
 });
 
+// Logout route
 app.get('/logout', (req, res, next) => {
-  req.logout(function (err) {
-    if (err) return next(err);
-    res.redirect('/login');
-  });
+    req.logout((err) => {
+        if (err) return next(err);
+        res.redirect('/login');
+    });
 });
 
-const insertDocument = async (db, doc) => await db.collection(collectionName).insertOne(doc);
-const findDocument = async (db, c = {}) => await db.collection(collectionName).find(c).toArray();
-const updateDocument = async (db, c, update) => await db.collection(collectionName).updateOne(c, { $set: update });
-const pushReview = async (db, bookId, review) => db.collection(collectionName).updateOne(
-  { _id: bookId }, { $push: { reviews: review } }
-);
-const deleteDocument = async (db, c) => db.collection(collectionName).deleteMany(c);
+// ------- Main Route ---------
+app.get('/main', async (req, res) => {
+    try {
+        const books = await db.collection(collectionName).find({}).toArray();
+        const nBookshelfs = books.length;
 
-// Add routes
-app.get('/', isLoggedIn, (req, res) => res.redirect('/main'));
-app.get('/main', isLoggedIn, async (req, res) => {
-  const docs = await findDocument(db);
-  res.status(200).render('main', { nBookshelfs: docs.length, bookshelfs: docs, user: req.user });
+        res.status(200).render('main', { bookshelfs: books, user: req.user, nBookshelfs });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server error' });
+    }
 });
 
-app.get('/details', isLoggedIn, async (req, res) => {
-  let DOCID = { _id: new ObjectId(req.query._id) };
-  const docs = await findDocument(db, DOCID);
-  res.status(200).render('details', { bookshelfs: docs[0], user: req.user });
-});
-
-app.get('/edit', isLoggedIn, async (req, res) => {
-  let DOCID = { _id: new ObjectId(req.query._id) };
-  let docs = await findDocument(db, DOCID);
-  if (docs.length > 0 && docs[0].userid === req.user._id.toString()) {
-    res.status(200).render('edit', { bookshelfs: docs[0], user: req.user });
-  } else {
-    res.status(500).render('info', { message: 'Unable to edit - you are not bookshelf owner!', user: req.user });
-  }
-});
-
-app.post('/update', isLoggedIn, async (req, res) => {
-  const DOCID = { _id: new ObjectId(req.body._id) };
-  let updateData = {
-    bookname: req.body.bookname,
-    author: req.body.author,
-  };
-  if (req.files && req.files.filetoupload) {
-    const file = req.files.filetoupload; // Get the uploaded file
-    updateData.photo = Buffer.from(await file.data).toString('base64'); // Use file.data directly
-  }
-  await updateDocument(db, DOCID, updateData);
-  res.status(200).render('info', { message: 'Update successfully.', user: req.user });
-});
-
-app.get('/delete', isLoggedIn, async (req, res) => {
-  let DOCID = { _id: new ObjectId(req.query._id) };
-  let docs = await findDocument(db, DOCID);
-  if (docs.length > 0 && docs[0].userid === req.user._id.toString()) {
-    await deleteDocument(db, DOCID);
-    res.status(200).render('info', { message: `Book name ${docs[0].bookname} removed.`, user: req.user });
-  } else {
-    res.status(500).render('info', { message: 'Unable to delete - you are not bookshelf owner!', user: req.user });
-  }
-});
-
-app.post('/addreview', isLoggedIn, async (req, res) => {
-  const bookId = new ObjectId(req.body._id);
-  const review = {
-    userid: req.user._id.toString(),
-    username: req.user.name,
-    text: req.body.review,
-    date: new Date().toISOString()
-  };
-  await pushReview(db, bookId, review);
-  res.redirect(`/details?_id=${req.body._id}`);
-});
-
-// Route to create a new book
+// ------- Create Book Route ---------
 app.get('/create', isLoggedIn, (req, res) => {
-  res.render('create', { user: req.user });
+    res.status(200).render('create', { user: req.user });
 });
 
 app.post('/create', isLoggedIn, async (req, res) => {
-  console.log('Received data:', req.body); 
+    try {
+        const { bookname, author } = req.body;
+        const bookData = {
+            bookname,
+            author,
+            photo: req.files && req.files.filetoupload ? Buffer.from(await req.files.filetoupload.data).toString('base64') : null
+        };
 
-  const bookData = {
-    bookname: req.body.bookname,
-    author: req.body.author,
-    userid: req.user._id.toString(),
-  };
-
-  // Check if files were uploaded
-  if (req.files && req.files.filetoupload) {
-    const file = req.files.filetoupload; 
-    console.log('Uploaded file:', file); 
-
-    // Read file buffer directly from the file object
-    bookData.photo = Buffer.from(await file.data).toString('base64'); 
-  } else {
-    console.log('No file uploaded.'); 
-  }
-
-  // Insert book data into the database
-  await insertDocument(db, bookData);
-  res.redirect('/main'); 
+        await db.collection(collectionName).insertOne(bookData);
+        res.redirect('/main');
+    } catch (err) {
+        console.error(err);
+        res.status(500).render('info', { message: 'Server error', user: req.user });
+    }
 });
 
-// Connect to MongoDB once and start server
+// ------- Get Book Details ---------
+app.get('/details', async (req, res) => {
+    try {
+        const bookId = req.query._id;
+        const book = await db.collection(collectionName).find({ _id: new ObjectId(bookId) }).toArray();
+
+        if (book.length === 0) {
+            return res.status(404).render('info', { message: 'Book not found', user: req.user });
+        }
+        
+        res.status(200).render('details', { book: book[0], user: req.user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).render('info', { message: 'Server error', user: req.user });
+    }
+});
+
+// ------- Edit Book ---------
+app.get('/edit', isLoggedIn, async (req, res) => {
+    try {
+        const bookId = req.query._id;
+        const book = await db.collection(collectionName).find({ _id: new ObjectId(bookId) }).toArray();
+
+        if (book.length === 0) {
+            return res.status(404).render('info', { message: 'Book not found', user: req.user });
+        }
+        res.status(200).render('edit', { book: book[0], user: req.user });
+    } catch (err) {
+        console.error(err);
+        res.status(500).render('info', { message: 'Server error', user: req.user });
+    }
+});
+
+// ------- Update Book ---------
+app.post('/update', isLoggedIn, async (req, res) => {
+    try {
+        const bookId = req.body._id;
+        const { bookname, author } = req.body;
+        const updateData = { bookname, author };
+
+        const result = await db.collection(collectionName).updateOne({ _id: new ObjectId(bookId) }, { $set: updateData });
+
+        if (result.matchedCount === 0) {
+            return res.status(404).render('info', { message: 'Book not found', user: req.user });
+        }
+        res.redirect('/main');
+    } catch (err) {
+        console.error(err);
+        res.status(500).render('info', { message: 'Server error', user: req.user });
+    }
+});
+
+// ------- Delete Book ---------
+app.post('/delete', isLoggedIn, async (req, res) => {
+    try {
+        const bookId = req.body._id; 
+        const result = await db.collection(collectionName).deleteOne({ _id: new ObjectId(bookId) });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).render('info', { message: 'Book not found', user: req.user });
+        }
+        res.redirect('/main'); 
+    } catch (err) {
+        console.error(err);
+        res.status(500).render('info', { message: 'Server error', user: req.user });
+    }
+});
+
+// ------- Add Review ---------
+app.post('/addreview', isLoggedIn, async (req, res) => {
+    try {
+        const { _id, review } = req.body; 
+        const newReview = {
+            username: req.user.username,
+            text: review,
+            date: new Date()
+        };
+
+        const result = await db.collection(collectionName).updateOne(
+            { _id: new ObjectId(_id) },
+            { $push: { reviews: newReview } }
+        );
+
+        if (result.modifiedCount === 0) {
+            return res.status(404).render('info', { message: 'Book not found', user: req.user });
+        }
+
+        res.redirect(`/details?_id=${_id}`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).render('info', { message: 'Server error', user: req.user });
+    }
+});
+
+// Connect to MongoDB and start the server
 const port = process.env.PORT || 8099;
 client.connect().then(() => {
-  db = client.db(dbName);
-  app.listen(port, () => console.log(`Listening at http://localhost:${port}`));
-});
-
+    db = client.db(dbName);
+    app.listen(port, () => console.log(`Listening at http://localhost:${port}`));
+}).catch(err => console.error(err));
