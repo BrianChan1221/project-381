@@ -17,7 +17,9 @@ app.use(session({
     secret: "tHiSiSasEcRetStr",
     resave: true,
     saveUninitialized: true }));
-    
+app.use(passport.initialize());
+app.use(passport.session());
+
 // MongoDB config
 const mongourl = 'mongodb+srv://brian:Brian1221@cluster0.mq6o1ri.mongodb.net/?appName=Cluster0';
 const dbName = 'library_dataset';
