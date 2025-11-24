@@ -241,7 +241,7 @@ curl -X POST -F 'bookname=jojojo' -F "filetoupload=@image.png" project-381-9h99.
 app.post('/api/library/:bookname', async (req,res) => { 
     if (req.params.bookname) {
         console.log(req.body)
-		try {
+		//try {
 			await client.connect();
 			console.log("Connected successfully to server");
 		    const db = client.db(dbName);
@@ -254,12 +254,12 @@ app.post('/api/library/:bookname', async (req,res) => {
 		        newDoc.photo = Buffer.from(data).toString('base64');}
 			await insertDocument(db, newDoc);
 		    res.status(200).json({"Successfully inserted":newDoc}).end();
-		} catch(err) {
-			console.error(err);
-		} finally {
-			await client.close();
-		    console.log("Closed DB connection");
-		}
+		//} catch(err) {
+		//	console.error(err);
+		//} finally {
+		//	await client.close();
+		//    console.log("Closed DB connection");
+		//}
     } else {
         res.status(500).json({"error": "missing bookname"});
     }
