@@ -11,7 +11,7 @@ const path = require('path');
 const fsPromises = require('fs').promises;
 
 app.set('view engine', 'ejs');
-app.use(express.urlencoded({ extended: true }));
+
 app.use(formidable());
 app.use((req,res,next) => {
     let d = new Date();
@@ -24,7 +24,7 @@ const isLoggedIn = (req,res,next) => {
     res.redirect('/login');
 }
 app.use(session({
-  secret: 'secret-key',  // Replace with your session secret
+  secret: 'tHiSiSasEcRetStr',  // Replace with your session secret
   resave: true,
   saveUninitialized: true
 }));
