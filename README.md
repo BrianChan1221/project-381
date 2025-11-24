@@ -30,9 +30,6 @@ https://project-381-9h99.onrender.com
 
 1. **Login/Logout/Registration**
    - Go to '/login' for login and `/register` for registration.
-   - Use the following credentials to log in:
-     - `student1 / password1`
-     - 'student2 / 123456'
    - Register a new account through the registration page.
    - Logout by clicking “Logout”.
 
