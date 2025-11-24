@@ -13,8 +13,8 @@ app.use(formidable());
 
 // Facebook Auth Strategy
 const facebookAuth = {
-    'clientID': '1174030840897887',
-    'clientSecret': 'f5aebdd7a0d67c3516a1a04d0d8cfeb9',
+    'clientID': '',
+    'clientSecret': '',
     'callbackURL': 'https://project-381-9h99.onrender.com/auth/facebook/callback'
 };
 
