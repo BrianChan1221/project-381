@@ -29,7 +29,7 @@ const client = new MongoClient(mongourl, {
   }
 });
 
-// Passport: local strategy setup
+// Passport: strategy setup
 passport.use(new LocalStrategy(async (username, password, done) => {
   try {
     const user = await db.collection(userCollection).findOne({ username });
@@ -68,7 +68,7 @@ const isLoggedIn = (req, res, next) => {
   res.redirect('/login');
 };
 
-// ------- Routes ----------
+//Routes 
 
 app.get('/login', (req, res) => {
   res.status(200).render('login', { message: req.query.message || "" });
@@ -187,7 +187,7 @@ app.get('/create', isLoggedIn, (req, res) => {
 });
 
 app.post('/create', isLoggedIn, async (req, res) => {
-  console.log('Received data:', req.body); // For debugging
+  console.log('Received data:', req.body); 
 
   const bookData = {
     bookname: req.body.bookname,
@@ -197,18 +197,18 @@ app.post('/create', isLoggedIn, async (req, res) => {
 
   // Check if files were uploaded
   if (req.files && req.files.filetoupload) {
-    const file = req.files.filetoupload; // Get the uploaded file
-    console.log('Uploaded file:', file); // Debugging
+    const file = req.files.filetoupload; 
+    console.log('Uploaded file:', file); 
 
     // Read file buffer directly from the file object
-    bookData.photo = Buffer.from(await file.data).toString('base64'); // Convert to Base64
+    bookData.photo = Buffer.from(await file.data).toString('base64'); 
   } else {
-    console.log('No file uploaded.'); // Debugging
+    console.log('No file uploaded.'); 
   }
 
   // Insert book data into the database
   await insertDocument(db, bookData);
-  res.redirect('/main'); // Redirect after creation
+  res.redirect('/main'); 
 });
 
 // Connect to MongoDB once and start server
