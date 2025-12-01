@@ -6,8 +6,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const path = require('path');
-
 const app = express();
+
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(fileUpload());
@@ -58,10 +58,18 @@ passport.deserializeUser(async (id, done) => {
 
 // Session middleware
 app.use(session({
+    name: 'session',
     secret: "tHiSiIsasEcRetStr",
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: {
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+    httpOnly: true,
+    secure: false, // set true if using HTTPS
+    sameSite: 'lax'
+  }
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -72,7 +80,7 @@ const isLoggedIn = (req, res, next) => {
 };
 
 // ------- Root Route ---------
-app.get('/', (req, res) => {
+app.get('/', isLoggedIn, (req, res) => {
     res.redirect('/main'); // Redirect to main page
 });
 
@@ -197,7 +205,10 @@ app.post('/update', isLoggedIn, async (req, res) => {
         const bookId = req.body._id;
         const { bookname, author } = req.body;
         const updateData = { bookname, author };
-
+        if (req.files && req.files.filetoupload) {
+		updateData.photo = req.files.filetoupload.data.toString('base64');
+	}
+    
         const result = await db.collection(collectionName).updateOne({ _id: new ObjectId(bookId) }, { $set: updateData });
 
         if (result.matchedCount === 0) {
