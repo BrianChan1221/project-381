@@ -38,12 +38,12 @@ https://project-381-9h99.onrender.com
    - Delete: Click the book name you created, then click “Delete” to remove your book
 
 3. **RESTful API**
-   | Method | Endpoint | Description |
-   |---------|-----------|-------------|
-   | GET | `/api/library/:bookname` | Get all bookcases |
-   | POST | `/api/library/:bookname` | Create new bookcase |
-   | PUT | `/api/library/:bookname` | Update bookcase by ID |
-   | DELETE | `/api/library/:bookname` | Delete bookcase by ID |
+   | Operation | HTTP Method | Path URI | Description |
+   |---------|---------|-----------|-------------|
+   | Read | GET | `/api/library/:bookname` | Get all bookcases |
+   | Create | POST | `/api/library/:bookname` | Create new bookcase |
+   | Update | PUT | `/api/library/:bookname` | Update bookcase by ID |
+   | Delete | DELETE | `/api/library/:bookname` | Delete bookcase by ID |
 
    **Example test with CURL:**
    \\curl -X POST -H "Content-Type: application/json" -d '{"bookName":"1984","idea":"Great dystopian novel"}' https://comp3810sef-group17.onrender.com/api/ideas
