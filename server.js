@@ -263,6 +263,24 @@ app.post('/addreview', isLoggedIn, async (req, res) => {
     }
 });
 
+// RESTful READ
+
+    app.get('/api/bookshelfs/:bookid', async (req, res) => {
+    try {
+        const bookId = req.params.bookid; // comes from URL
+        const doc = await db.collection(collectionName).findOne({ _id: new ObjectId(bookId) });
+
+        if (!doc) {
+            return res.status(404).json({ error: "Book not found" });
+        }
+
+        res.status(200).json(doc);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
 // Connect to MongoDB and start the server
 const port = process.env.PORT || 8099;
 client.connect().then(() => {
