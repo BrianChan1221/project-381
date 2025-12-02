@@ -73,6 +73,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use(express.json());
+
 // Utility function to check if the user is logged in
 const isLoggedIn = (req, res, next) => {
     if (req.isAuthenticated()) return next();
@@ -264,7 +266,7 @@ app.post('/addreview', isLoggedIn, async (req, res) => {
 });
 
 // RESTful READ
-
+//
     app.get('/api/bookshelfs/:bookid', async (req, res) => {
     try {
         const bookId = req.params.bookid; // comes from URL
@@ -275,6 +277,74 @@ app.post('/addreview', isLoggedIn, async (req, res) => {
         }
 
         res.status(200).json(doc);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// RESTful CREATE
+//curl -X POST -H "Content-Type: application/json" --data '{"bookname":"testingcreate3","author":"testingcreate3"}' localhost:8099/api/bookshelfs/
+
+app.post('/api/bookshelfs/:bookid', async (req, res) => {
+    try {
+        const { bookname, author } = req.body;
+        const newDoc = {
+            //bookId: req.params.bookid,   // <-- use params here
+	    bookname,//: req.body.bookname,
+	    author//: req.body.author
+        };
+
+        if (req.files?.filetoupload) {
+            newDoc.photo = req.files.filetoupload.data.toString('base64');
+        }
+
+        await db.collection(collectionName).insertOne(newDoc);
+        res.status(201).json({ message: "Successfully inserted", book: newDoc });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// RESTful UPDATE
+//curl -X PUT -H "Content-Type: application/json" --data '{"bookname":"testingupdate3","author":"testingupdat3"}' localhost:8099/api/bookshelfs/692edf0ae6bff7a8edb4e142
+
+app.put('/api/bookshelfs/:bookid', async (req, res) => {
+        try{
+        const bookId = req.params.bookid;
+        const { bookname, author } = req.body;
+        const updateData = { bookname, author };
+        if (req.files && req.files.filetoupload) {
+		updateData.photo = req.files.filetoupload.data.toString('base64');
+	}
+    
+        const result = await db.collection(collectionName).updateOne({ _id: new ObjectId(bookId) }, { $set: updateData });
+
+        if (result.matchedCount === 0) {
+            return res.status(404).render('info', { message: 'Book not found', user: req.user });
+        }
+        res.status(200).json({ message: "Updated successfully"});
+        } catch (err) {
+        console.error(err);
+        res.status(500).render('info', { message: 'Server error', user: req.user });
+    }
+});
+
+
+// RESTful DELETE
+// curl -X DELETE localhost:8099/api/bookshelfs/
+app.delete('/api/bookshelfs/:bookid', async (req, res) => {
+    try {
+        const bookId = req.params.bookid;
+        
+        const result = await db.collection(collectionName).deleteOne({ _id: new ObjectId(bookId) });
+
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: "Book not found" });
+        }
+
+        res.status(200).json({ message: "Book deleted successfully" });
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: "Server error" });
