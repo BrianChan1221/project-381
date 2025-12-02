@@ -40,7 +40,7 @@ https://project-381-9h99.onrender.com
 3. **RESTful API**
    | Operation | HTTP Method | Path URI | Description |
    |---------|---------|-----------|-------------|
-   | Read | GET | `/api/bookshelfs/:bookid` | Get the bookcase with the bookid which inputed as bookid |
+   | Read | GET | `/api/bookshelfs/:bookid` | Get the bookcase by bookid |
    | Create | POST | `/api/bookshelfs/:bookid` | Create new bookcase |
    | Update | PUT | `/api/bookshelfs/:bookid` | Update bookcase by bookid |
    | Delete | DELETE | `/api/bookshelfs/:bookid` | Delete bookcase by bookid |
