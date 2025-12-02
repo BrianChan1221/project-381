@@ -45,7 +45,7 @@ https://project-381-9h99.onrender.com
    | Update | PUT | `/api/bookshelfs/:bookid` | Update bookcase by bookid |
    | Delete | DELETE | `/api/bookshelfs/:bookid` | Delete bookcase by bookid |
 
-   **Example test with CURL:**
+   **Example test with RESTful CURL services:**
    - READ: -curl -X GET https://project-381-9h99.onrender.com/api/bookshelfs/69249bd0fa03d0e6297b47ee
    - CREATE: -curl -X POST -H "Content-Type: application/json" --data '{"bookname":"testingcreate3","author":"testingcreate3"}' localhost:8099/api/bookshelfs/
    - UPDATE: -curl -X PUT -H "Content-Type: application/json" --data '{"bookname":"testingupdate3","author":"testingupdate3"}' localhost:8099/api/bookshelfs/692edf0ae6bff7a8edb4e142
