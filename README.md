@@ -29,13 +29,13 @@ https://project-381-9h99.onrender.com
 1. **Login/Logout/Registration**
    - Go to '/login' for login and `/register` for registration.
    - Register a new account through the registration page.
-   - Logout by clicking “Logout”.
+   - Log out by clicking “Logout”.
 
 2. **CRUD Web Pages**
    - GET: List & search bookcases
-   - Create: Use form to submit new bookcase
-   - Update: Click “Edit” to modify your own bookcases
-   - Delete: Click “Delete” to remove your own bookcase
+   - Create: Click "Create a New Bookcase" to create a book
+   - Update: Click the book name you created, then click “Edit” to modify the details of your book
+   - Delete: Click the book name you created, then click “Delete” to remove your book
 
 3. **RESTful API**
    | Method | Endpoint | Description |
